@@ -53,12 +53,16 @@
                 <div>
                     of: <span id="tsk3_of"></span>
                 </div>
+            </div>
+            <div class="col">
+                from: <span id="tsk3_from"></span>
+            </div>
+            <div class="col">
                 <div>
-                    from: <span id="tsk3_from"></span>
+                    timer: <span id="tsk3_log"></span>
                 </div>
-                <div>
-                    timer: <textarea id="tsk3_log"></textarea>
-                </div>
+                <small>delay 1s, then emit every 2s.</small>
+                <small class="text-danger">Will emit indefinetly until unsubscribed</small>
             </div>
         </div>
     </div>
@@ -119,10 +123,11 @@
             }
         });
 
-        const $ = rxjs.from([1,2,3, 4]);
-        from$.subscribe({
+        // delay 1s, then emit every 2s
+        const timer$ = rxjs.timer(1000, 2000);
+        timer$.subscribe({
             next: (val) => {
-                document.getElementById('tsk3_from').innerText += val;
+                document.getElementById('tsk3_log').innerText += val;
             }
         });
 
