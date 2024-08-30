@@ -71,13 +71,15 @@
     <div class="container pt-5">
         <div class="row">
             <h3>Example 4</h3>
-            <small>Using pipe(filter(...)) to autocomplete contries by substring.</small>
+            <small>Using <code>from</code> to convert <code>Promise</code> to <code>Observable</code> then piping it throguht the <code>switchMap</code> operator to replace <code>Response</code> object with parsed json, and finally applying <code>tap</code> to remove the spinner. Using <code>pipe(debounceTime(...))</code> to reduce the number of executions of autocomplete.</small>
         </div>
         <div class="row pt-4">
             <div class="col">
                 <div class="form-control" id="tsk4_autocomplete">
                     <div class="spinner-border text-primary spinner-border-sm rigfh" ></div>
                     <input style="outline: none; border: none;"  id="exampleDataList" placeholder="Type to search...">
+                    <div class="list-group" style="position: fixed; max-height: 200px; overflow: auto;">
+                    </div>
                 </div>
             </div>
         </div>
@@ -113,9 +115,6 @@
             },
             error: (err) => {
                 console.error('Failed to access the user geolocation: ', err);
-            },
-            complete: () => {
-                console.log('Completed');
             }
         });
     </script>
@@ -151,25 +150,62 @@
         }
 
         function mapToJson(reponse) {
-            return reponse.json();
+            return rxjs.from(reponse.json());
         }
 
+        /**
+         * @param {HTMLElement} inputContainer
+        */
+        function autocomplete(inputContainer) {
+            const input = inputContainer.getElementsByTagName('input')[0];
+            const list = inputContainer.getElementsByClassName('list-group')[0];
+
+            rxjs.fromEvent(input, 'input')
+            .pipe(
+                rxjs.debounceTime(300),
+                rxjs.map(event => {
+                    const currentValue = event.target.value ? event.target.value.toLowerCase() : '';
+                    const suggestions = countriesData.filter((country) => {
+                        return country.name.toLowerCase().indexOf(currentValue) !== -1;
+                    });
+                    return suggestions;
+                })
+            )
+            .subscribe({
+                next: (suggestions) => {
+                    list.innerHTML = '';
+                    suggestions.forEach(country => {
+                        const a = document.createElement('a');
+                        a.classList.add('list-group-item', 'list-group-item-action');
+                        a.textContent = country.name;
+                        const click$ = rxjs.fromEvent(a, 'click');
+                        const clickSub = click$.subscribe({
+                            next: (event) => {
+                                input.value = country.name;
+                                list.innerHTML = '';
+                            }
+                        });
+                        list.appendChild(a);
+                    });
+                }
+            });
+        }
+
+        let countriesData = [];
         const countriesDataPromise = fetch(new URL('https://countriesnow.space/api/v0.1/countries/iso'));
-        rxjs.from(countriesDataPromise).pipe(rxjs.tap(removeSpinner), rxjs.map(mapToJson)).subscribe({
-            next: (val) => {
-                console.log(val);
+        rxjs.from(countriesDataPromise).pipe(rxjs.switchMap(mapToJson), rxjs.tap(removeSpinner)).subscribe({
+            next: (payload) => {
+                if (!payload.error) {
+                    countriesData = payload.data;
+                }
             },
             error: (err) => {
                 console.error('Failed to fetch countries data: ', err);
-            },
-            complete: () => {
-                console.log('Completed');
             }
         });
 
-        const input = document.getElementById('exampleDataList');
-
-        const dropdown = document.appendChild('datalist');
+        const inputContainer = document.getElementById('tsk4_autocomplete');
+        autocomplete(inputContainer);
     </script>
 </body>
 
