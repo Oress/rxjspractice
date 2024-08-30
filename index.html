@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+
+<body>
+
+    <div class="container pt-5">
+        <div class="row">
+            <h3>Task 1</h3>
+            <small>Using <code>fromEvent</code> to add an event listener for a button click event.</small>
+        </div>
+        <div class="row pt-4">
+            <div class="col">
+                <button id="tsk1btn" type="button" class="btn btn-outline-primary">Click me!</button>
+            </div>
+            <div class="col">
+                <textarea id="tsk1log"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pt-5">
+        <div class="row">
+            <h3>Task 2</h3>
+            <small>Using <code>Observable.create</code> to wrap geolocation api with <code>Observable</code>. </small>
+        </div>
+        <div class="row pt-4">
+            <div class="col">
+                <div>
+                    Longtitude: <span id="tsk2_long"></span>
+                </div>
+                <div>
+                    Latitude: <span id="tsk2_lat"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pt-5">
+        <div class="row">
+            <h3>Task 3</h3>
+            <small>Creating using factory methods to create <code>Observable</code>s. <code>of</code> <code>from</code> <code>timer</code> </small>
+        </div>
+        <div class="row pt-4">
+            <div class="col">
+                <div>
+                    of: <span id="tsk3_of"></span>
+                </div>
+                <div>
+                    from: <span id="tsk3_from"></span>
+                </div>
+                <div>
+                    timer: <textarea id="tsk3_log"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://unpkg.com/rxjs@^7/dist/bundles/rxjs.umd.min.js"></script>
+    <script>
+        const btn1 = document.getElementById('tsk1btn');
+        console.log(rxjs);
+        let clicks = 1;
+        rxjs.fromEvent(btn1, 'click').subscribe(() => {
+            tsk1log.value = `Clicked ${clicks++} times!\n` + tsk1log.value;
+        });
+
+        /////////////////////////////
+        /////////////////////////////
+        /////////////////////////////
+
+        const userGeoPosition$ = rxjs.Observable.create((observer) => {
+            navigator.geolocation.getCurrentPosition((position) => {
+                observer.next(position);
+                observer.complete();
+            });
+        });
+
+        userGeoPosition$.subscribe({
+            next: (position) => {
+                const long = position.coords.longitude ?? 'N/A';
+                const lat = position.coords.latitude ?? 'N/A';
+
+                document.getElementById('tsk2_long').innerText = long;
+                document.getElementById('tsk2_lat').innerText = lat;
+            },
+            error: (err) => {
+                console.error('Failed to access the user geolocation: ', err);
+            },
+            complete: () => {
+                console.log('Completed');
+            }
+        });
+
+
+        /////////////////////////////
+        /////////////////////////////
+        /////////////////////////////
+
+        const of$ = rxjs.of(1,2,3,4);
+        of$.subscribe({
+            next: (val) => {
+                document.getElementById('tsk3_of').innerText += val;
+            }
+        });
+
+        const from$ = rxjs.from([1,2,3, 4]);
+        from$.subscribe({
+            next: (val) => {
+                document.getElementById('tsk3_from').innerText += val;
+            }
+        });
+
+        const $ = rxjs.from([1,2,3, 4]);
+        from$.subscribe({
+            next: (val) => {
+                document.getElementById('tsk3_from').innerText += val;
+            }
+        });
+
+
+    </script>
+</body>
+
+</html>
